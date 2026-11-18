@@ -1,4 +1,4 @@
-# 脉络 · 技术章程
+# Pace your thought with agents · 技术章程
 
 首版交付一个 VS Code 侧栏扩展，接入编辑器终端里的 Codex CLI。浏览器提供现场全屏回放。采集、整理和展示围绕同一份本地项目记忆工作。
 
