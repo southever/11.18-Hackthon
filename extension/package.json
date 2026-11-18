@@ -1,0 +1,91 @@
+{
+  "name": "mailuo",
+  "displayName": "脉络 MindTrace",
+  "description": "在 VS Code 中查看 Codex 对话里积累的想法、依据和项目决策。",
+  "version": "0.1.0",
+  "publisher": "southever",
+  "engines": {
+    "vscode": "^1.97.0"
+  },
+  "categories": ["Other"],
+  "extensionKind": ["workspace"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/southever/11.18-Hackthon.git"
+  },
+  "main": "./extension.cjs",
+  "activationEvents": [
+    "onView:mailuo.canvas"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": false,
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "在受信任的本地文件夹中启用 Codex 项目记录。"
+    }
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mailuo",
+          "title": "脉络 MindTrace",
+          "icon": "icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "mailuo": [
+        {
+          "id": "mailuo.canvas",
+          "name": "脉络 MindTrace",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "mailuo.enable",
+        "category": "脉络 MindTrace",
+        "title": "启用项目记录"
+      },
+      {
+        "command": "mailuo.export",
+        "category": "脉络 MindTrace",
+        "title": "导出当前项目说明"
+      },
+      {
+        "command": "mailuo.replay",
+        "category": "脉络 MindTrace",
+        "title": "打开内置演示回放"
+      },
+      {
+        "command": "mailuo.example",
+        "category": "脉络 MindTrace",
+        "title": "在侧栏查看路演示例"
+      },
+      {
+        "command": "mailuo.project",
+        "category": "脉络 MindTrace",
+        "title": "在侧栏查看当前工作区"
+      }
+    ],
+    "configuration": {
+      "title": "脉络 MindTrace",
+      "properties": {
+        "mailuo.nodePath": {
+          "type": "string",
+          "default": "node",
+          "scope": "machine",
+          "description": "用于读取项目记忆的外部 Node.js 24+ 可执行文件。"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "package": "node package.mjs"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "3.7.1"
+  }
+}
