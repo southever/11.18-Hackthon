@@ -170,6 +170,9 @@ export function Canvas({ frame, positions, selection, allNodes, compact, onSelec
         if (edge.from === frame.focusId) visible.add(edge.to);
         if (edge.to === frame.focusId) visible.add(edge.from);
       }
+      for (const edge of frame.edges.filter(item => item.label === '沿用')) {
+        if (visible.has(edge.from)) visible.add(edge.to);
+      }
       if (selection?.type === 'node') visible.add(selection.id);
       const selectedEdge = selection?.type === 'edge' && frame.edges.find(edge => edge.id === selection.id);
       if (selectedEdge) {

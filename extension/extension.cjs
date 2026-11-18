@@ -15,6 +15,7 @@ const demoDirectory = path.join(root, 'demo');
 const cli = path.join(root, 'core', 'cli.mjs');
 const pollInterval = 2500;
 let selectedNode;
+const organizing = new Set();
 
 function activeProject() {
   const document = vscode.window.activeTextEditor?.document;
@@ -59,10 +60,24 @@ async function readSnapshot(project) {
       maxBuffer: 20 * 1024 * 1024,
       timeout: 10000,
     });
-    return JSON.parse(stdout);
+    const snapshot = JSON.parse(stdout);
+    if (snapshot.frames.some(frame => frame.state === 'pending' || frame.state === 'processing')) {
+      organizePendingTurns(node, project);
+    }
+    return snapshot;
   } catch (error) {
     throw new Error('读取项目记忆失败。' + String(error.stderr || error.message).trim());
   }
+}
+
+function organizePendingTurns(node, project) {
+  const workspace = project.fsPath;
+  if (organizing.has(workspace)) return;
+  organizing.add(workspace);
+  exec(node, [cli, 'process', '--workspace', workspace], {
+    cwd: workspace,
+    windowsHide: true,
+  }).catch(() => {}).finally(() => organizing.delete(workspace));
 }
 
 async function saveMarkdown(project, markdown) {

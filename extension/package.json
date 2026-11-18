@@ -2,13 +2,17 @@
   "name": "mailuo",
   "displayName": "脉络 MindTrace",
   "description": "在 VS Code 中查看 Codex 对话里积累的想法、依据和项目决策。",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "southever",
   "engines": {
     "vscode": "^1.97.0"
   },
-  "categories": ["Other"],
-  "extensionKind": ["workspace"],
+  "categories": [
+    "Other"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/southever/11.18-Hackthon.git"

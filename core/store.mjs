@@ -154,14 +154,26 @@ export function claimTurn(store) {
       SELECT * FROM turns WHERE stop_seq IS NOT NULL AND state <> 'ready'
       ORDER BY stop_seq LIMIT 1
     `).get()
-    if (!turn || (turn.state === 'processing' && turn.expires_at > Date.now())) return null
-    const claim = randomUUID()
+    if (!turn || hasLiveClaim(turn)) return null
+    const claim = `${process.pid}:${randomUUID()}`
     db.prepare(`
       UPDATE turns SET state = 'processing', claim = ?, expires_at = ?, error = NULL
       WHERE turn_key = ?
     `).run(claim, Date.now() + leaseDuration, turn.turn_key)
     return { ...turn, claim }
   })
+}
+
+function hasLiveClaim(turn) {
+  if (turn.state !== 'processing' || turn.expires_at <= Date.now()) return false
+  const owner = turn.claim?.match(/^(\d+):/)
+  if (!owner) return true
+  try {
+    process.kill(Number(owner[1]), 0)
+    return true
+  } catch (error) {
+    return error.code !== 'ESRCH'
+  }
 }
 
 export function previousFrame(store, turn) {

@@ -83,13 +83,15 @@ function SourceCard({ source, expanded }: { source: Source; expanded: boolean })
 }
 
 function Evidence({
-  frame, selection, setSelection, openPreview,
+  frame, roundSources, selection, setSelection, openPreview,
 }: {
   frame: Frame;
+  roundSources: Source[];
   selection: Selection | null;
   setSelection: (value: Selection | null) => void;
   openPreview: () => void;
 }) {
+  const [showRound, setShowRound] = useState(Boolean(frame.state));
   const node = selection?.type === 'node' ? frame.nodes.find(item => item.id === selection.id) : undefined;
   const edge = selection?.type === 'edge' ? frame.edges.find(item => item.id === selection.id) : undefined;
   const selected = node ?? edge;
@@ -102,9 +104,17 @@ function Evidence({
   return (
     <aside className="evidence" aria-label="详情">
       <div className="panel-title"><ListTree size={16} /><h2>详情</h2>
+        <button className="icon-button" aria-label="本轮记录" aria-pressed={showRound} title="本轮记录" onClick={() => setShowRound(value => !value)}><MessageSquare size={15}/></button>
         {selection && <button className="icon-button" onClick={() => setSelection(null)} title="清除选择" aria-label="清除选择"><X size={16}/></button>}
       </div>
-      {selected ? (
+      {showRound ? (
+        <div className="evidence-scroll">
+          <section className="evidence-section">
+            <h4>本轮记录 <span>{roundSources.length}</span></h4>
+            {roundSources.map((source, index) => <SourceCard key={source.id} source={source} expanded={index === 0} />)}
+          </section>
+        </div>
+      ) : selected ? (
         <div className="evidence-scroll" key={selected.id}>
           <div className="evidence-lead">
             <div className="evidence-type">
@@ -416,7 +426,9 @@ function Workspace({ replay, error }: { replay: Replay; error: string }) {
             : frame.preview && <Preview preview={frame.preview} onBack={() => openPanel('canvas')} />}
           {!compact && <Timeline frames={replay.frames} index={index} playing={playing} goTo={goTo} togglePlaying={togglePlaying} />}
         </div>
-        {activePanel === 'canvas' && <Evidence frame={frame} selection={currentSelection} setSelection={pickSelection} openPreview={() => openPanel('preview')} />}
+        {activePanel === 'canvas' && <Evidence key={frame.id} frame={frame}
+          roundSources={frame.sources.slice(replay.frames[index - 1]?.sources.length ?? 0)}
+          selection={currentSelection} setSelection={pickSelection} openPreview={() => openPanel('preview')} />}
       </div>
       {!compact && <footer className="app-footer">
         <span><GitBranch size={13} />{replay.project.title}</span>

@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { test } from 'node:test'
 import { applyExtraction } from './extract.mjs'
 import { processTurns, snapshot } from './memory.mjs'
-import { openStore, recordEvent, storeStatus } from './store.mjs'
+import { claimTurn, openStore, recordEvent, storeStatus } from './store.mjs'
 
 function fixture(t) {
   const temp = mkdtempSync(join(tmpdir(), 'mailuo-test-'))
@@ -37,6 +37,18 @@ function fixture(t) {
 
 const firstPrompt = '帮我做校园电影节网站，首页先放海报轮播。'
 const secondPrompt = '首页改成场次表，海报放到详情页。'
+
+test('a stopped organizer can be recovered before the lease expires', t => {
+  const store = fixture(t).open()
+  captureTurn(store, 'first', firstPrompt)
+  const owner = claimTurn(store)
+  assert.equal(claimTurn(store), null)
+  store.db.prepare('UPDATE turns SET claim = ? WHERE turn_key = ?')
+    .run('2147483647:original', owner.turn_key)
+  const recovered = claimTurn(store)
+  assert.equal(recovered.turn_key, owner.turn_key)
+  assert.notEqual(recovered.claim, owner.claim)
+})
 
 function captureTurn(store, session, prompt) {
   const common = { session_id: session, turn_id: `turn-${session}`, cwd: store.root }
