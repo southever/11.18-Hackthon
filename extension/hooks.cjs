@@ -3,7 +3,8 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 
 const events = ['UserPromptSubmit', 'PostToolUse', 'Stop'];
-const statusMessage = '脉络 MindTrace 正在记录';
+const statusMessage = 'Pace your thought with agents 正在记录';
+const recordingLabels = new Set([statusMessage, '脉络 MindTrace 正在记录']);
 
 function quoteShellArgument(value) {
   return "'" + value.replace(/'/g, "'\\''") + "'";
@@ -61,12 +62,12 @@ async function installHooks(workspace, { node, cli }) {
     }
     const registered = groups
       .flatMap(group => group.hooks)
-      .filter(item => item?.statusMessage === statusMessage);
+      .filter(item => recordingLabels.has(item?.statusMessage));
     if (registered.length === 1 && JSON.stringify(registered[0]) === JSON.stringify(handler)) {
       continue;
     }
     config.hooks[event] = groups.flatMap(group => {
-      const hooks = group.hooks.filter(item => item?.statusMessage !== statusMessage);
+      const hooks = group.hooks.filter(item => !recordingLabels.has(item?.statusMessage));
       if (hooks.length === group.hooks.length) return [group];
       return hooks.length ? [{ ...group, hooks }] : [];
     });

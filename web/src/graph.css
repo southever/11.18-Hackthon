@@ -1,0 +1,227 @@
+.memory-graph {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  color: #252c24;
+}
+
+.memory-graph .react-flow { background: transparent; }
+
+.canvas-viewport > .memory-graph { position: absolute; inset: 0; }
+.narrow-map { height: 100%; overflow: auto; padding: 14px 12px 18px; overscroll-behavior: contain; }
+.narrow-branch { margin-bottom: 14px; }
+.narrow-card { display: grid; gap: 6px; width: 100%; padding: 10px 12px; text-align: left; border: 1px solid #d9dfd3; border-radius: 13px; background: #fffdf8; color: #273029; cursor: pointer; }
+.narrow-branch[data-focus="true"] .narrow-card { background: #edf2e6; border-color: #a4b59d; }
+.narrow-card > span { display: flex; align-items: center; gap: 6px; color: #556651; font-size: 11px; }
+.narrow-card small { margin-left: auto; font-size: inherit; }
+.narrow-card strong { font-size: 15px; line-height: 1.45; }
+.narrow-connection { position: relative; display: flex; align-items: baseline; gap: 7px; width: calc(100% - 15px); min-height: 32px; margin-left: 15px; padding: 7px 2px 3px 19px; color: #424c41; text-align: left; font-size: 12px; line-height: 1.45; cursor: pointer; }
+.narrow-connection::before { content: ''; position: absolute; left: 0; top: 0; width: 13px; height: 17px; border-left: 1px solid #93a38a; border-bottom: 1px solid #93a38a; border-bottom-left-radius: 7px; }
+.narrow-connection:not(:last-child)::after { content: ''; position: absolute; inset: 0 auto 0 0; border-left: 1px solid #93a38a; }
+.narrow-connection > span { color: #476046; flex: none; font-weight: 650; }
+.narrow-card:hover, .narrow-connection:hover { color: #304e31; }
+
+.memory-graph .react-flow__node:focus-visible {
+  outline: 2px solid #527356;
+  outline-offset: 5px;
+  border-radius: 16px;
+}
+
+.memory-graph .react-flow__handle {
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.memory-graph .react-flow__edge:focus-visible .react-flow__edge-path {
+  stroke-width: 2.5px !important;
+}
+
+.memory-graph .memory-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 12px 13px;
+  border: 1px solid #d6dbd3;
+  border-radius: 14px;
+  background: #fffcf6;
+  box-shadow: 0 2px 3px #29352a08, 0 7px 18px #28352a0c;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color .16s, border-color .16s, box-shadow .16s;
+}
+
+.memory-graph .memory-card:hover {
+  border-color: #929d8d;
+  box-shadow: 0 2px 6px #263c2612, 0 8px 18px #263c2615;
+}
+
+.memory-graph .memory-card[data-status="superseded"] {
+  border-color: #d9cabc;
+  border-style: dashed;
+  background: #f7f0e6;
+}
+
+.memory-graph .memory-card[data-focus="true"] {
+  border-color: #90a288;
+  background: #eaf0e2;
+  box-shadow: 0 0 0 3px #9eb29729, 0 8px 22px #334a2c1a;
+}
+
+.memory-graph .memory-card[data-selected="true"]:not([data-focus="true"]) {
+  border-color: #688561;
+  box-shadow: 0 0 0 3px #9eb29740, 0 8px 16px #334a2c16;
+}
+
+.memory-graph .memory-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 3px;
+}
+
+.memory-graph .memory-card-kind,
+.memory-graph .memory-card-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #596359;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.memory-graph .memory-card-status {
+  gap: 4px;
+  color: #657064;
+  font-size: 10px;
+}
+
+.memory-graph .memory-kind-icon {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  color: #53694f;
+  border: 1px solid #e1e7db;
+  border-radius: 8px;
+  background: #f0f3e9;
+}
+
+.memory-graph [data-kind="attempt"] .memory-kind-icon { color: #626d69; background: #eef1ec; }
+.memory-graph [data-focus="true"] .memory-kind-icon { background: #dce8d5; border-color: #cfdfc6; }
+.memory-graph [data-focus="true"] .memory-card-status { color: #435f41; }
+.memory-graph [data-focus="true"] .memory-card-status svg { fill: #688561; stroke: #688561; }
+.memory-graph [data-status="superseded"] .memory-kind-icon { color: #805f49; border-color: #e8dacc; background: #f1e6da; }
+.memory-graph [data-status="superseded"] .memory-card-status { color: #805f49; }
+
+.memory-graph .memory-card strong,
+.memory-graph .memory-card p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.memory-graph .memory-card strong {
+  flex: none;
+  margin-top: 8px;
+  color: #273029;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.27;
+}
+
+.memory-graph .memory-card p {
+  margin: 5px 0 0;
+  color: #5d665b;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.memory-graph [data-focus="true"] strong { color: #243d2a; }
+
+.memory-graph .edge-label {
+  position: absolute;
+  z-index: 2;
+  min-width: 36px;
+  min-height: 23px;
+  padding: 2px 7px;
+  border: 1px solid #dce0d5;
+  border-radius: 99px;
+  background: #f9f9f1;
+  color: #566353;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.memory-graph .edge-label[data-tone="replace"] {
+  border-color: #d9c1ab;
+  background: #f5e9db;
+  color: #704a36;
+  font-weight: 750;
+}
+
+.memory-graph .edge-label[data-tone="reuse"] {
+  border-color: #c9d8c2;
+  background: #e8f0e3;
+  color: #405e43;
+  font-weight: 750;
+}
+
+.memory-graph .edge-label:hover,
+.memory-graph .edge-label[data-selected="true"] {
+  border-color: #849981;
+  outline: 2px solid #a5b69d70;
+}
+
+.memory-graph .edge-label:focus-visible {
+  outline: 2px solid #527356;
+  outline-offset: 3px;
+}
+
+.memory-graph .canvas-zoom {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  z-index: 5;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #d9ddd1;
+  border-radius: 12px;
+  background: #fffdf7;
+  color: #536756;
+  box-shadow: 0 3px 9px #27342911;
+}
+
+.memory-graph .canvas-zoom button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.memory-graph .canvas-zoom button:hover { background: #e9eee4; color: #334a37; }
+.memory-graph[data-narrow="true"] .memory-card { padding: 8px 8px 7px; border-radius: 11px; }
+.memory-graph[data-narrow="true"] .memory-card-meta { gap: 2px; }
+.memory-graph[data-narrow="true"] .memory-card-kind { font-size: 10px; gap: 3px; }
+.memory-graph[data-narrow="true"] .memory-card-status { font-size: 9px; gap: 2px; }
+.memory-graph[data-narrow="true"] .memory-card-status svg { width: 8px; height: 8px; }
+.memory-graph[data-narrow="true"] .memory-kind-icon { width: 19px; height: 19px; border-radius: 6px; }
+.memory-graph[data-narrow="true"] .memory-kind-icon svg { width: 11px; height: 11px; }
+.memory-graph[data-narrow="true"] .memory-card strong { margin-top: 6px; font-size: 14px; }
+.memory-graph[data-narrow="true"] .memory-card p { margin-top: 4px; }
+.memory-graph[data-narrow="true"] .canvas-zoom { right: 6px; bottom: 6px; }
+.memory-graph[data-narrow="true"] .canvas-zoom button { width: 26px; height: 26px; }

@@ -53,7 +53,7 @@ try {
   await main()
 } catch (error) {
   if (command === 'hook') {
-    console.log(JSON.stringify({ systemMessage: `脉络记录失败：${error.message}` }))
+    console.log(JSON.stringify({ systemMessage: `项目记忆记录失败：${error.message}` }))
   } else {
     console.error(error.message)
     process.exitCode = 1

@@ -14,7 +14,10 @@ test('project hook registration preserves other handlers and forwards UTF-8 stdi
     const existing = {
       description: 'Project configuration',
       hooks: {
-        Stop: [{ hooks: [{ type: 'command', command: 'other-hook' }] }],
+        Stop: [
+          { hooks: [{ type: 'command', command: 'other-hook' }] },
+          { hooks: [{ type: 'command', command: 'older-installation', statusMessage: '脉络 MindTrace 正在记录' }] },
+        ],
         SessionStart: [{ matcher: 'resume', hooks: [{ type: 'command', command: 'resume-hook' }] }],
       },
     };

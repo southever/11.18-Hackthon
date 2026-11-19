@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import ReactMarkdown from 'react-markdown';
 import {
@@ -60,8 +60,8 @@ function ordinal(index: number) {
 function Brand({ title }: { title?: string }) {
   return (
     <div className="brand">
-      <span className="brand-mark"><Workflow size={19} strokeWidth={2.1} /></span>
-      <span className="brand-name">脉络</span>
+      <span className="brand-mark"><Workflow size={17} strokeWidth={1.9} /></span>
+      <span className="brand-name">Pace your thought with agents</span>
       {title && <><span className="brand-divider" /><span className="brand-project" title={title}>{title}</span></>}
     </div>
   );
@@ -83,15 +83,17 @@ function SourceCard({ source, expanded }: { source: Source; expanded: boolean })
 }
 
 function Evidence({
-  frame, roundSources, selection, setSelection, openPreview,
+  frame, roundSources, selection, setSelection, showRound, toggleRound, close, openPreview,
 }: {
   frame: Frame;
   roundSources: Source[];
   selection: Selection | null;
-  setSelection: (value: Selection | null) => void;
+  setSelection: (value: Selection) => void;
+  showRound: boolean;
+  toggleRound: () => void;
+  close: () => void;
   openPreview: () => void;
 }) {
-  const [showRound, setShowRound] = useState(Boolean(frame.state));
   const node = selection?.type === 'node' ? frame.nodes.find(item => item.id === selection.id) : undefined;
   const edge = selection?.type === 'edge' ? frame.edges.find(item => item.id === selection.id) : undefined;
   const selected = node ?? edge;
@@ -102,10 +104,15 @@ function Evidence({
   const related = node ? frame.edges.filter(item => item.from === node.id || item.to === node.id) : [];
 
   return (
-    <aside className="evidence" aria-label="详情">
+    <aside className="evidence" id="evidence" aria-label="详情" onKeyDown={event => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        close();
+      }
+    }}>
       <div className="panel-title"><ListTree size={16} /><h2>详情</h2>
-        <button className="icon-button" aria-label="本轮记录" aria-pressed={showRound} title="本轮记录" onClick={() => setShowRound(value => !value)}><MessageSquare size={15}/></button>
-        {selection && <button className="icon-button" onClick={() => setSelection(null)} title="清除选择" aria-label="清除选择"><X size={16}/></button>}
+        <button className="icon-button" aria-label="本轮记录" aria-pressed={showRound} title="本轮记录" onClick={toggleRound}><MessageSquare size={15}/></button>
+        <button className="icon-button" onClick={close} title={selection ? '清除选择' : '关闭详情'} aria-label={selection ? '清除选择' : '关闭详情'}><X size={16}/></button>
       </div>
       {showRound ? (
         <div className="evidence-scroll">
@@ -164,30 +171,41 @@ function Evidence({
   );
 }
 
+const imagePreview = /\.(avif|gif|jpe?g|png|webp)(?:[?#].*)?$/i;
+
 function HistoryRail({
-  replay, frame, index, goTo, onSelect,
+  replay, frame, index, goTo, onSelect, openPreview,
 }: {
   replay: Replay;
   frame: Frame;
   index: number;
   goTo: (index: number) => void;
   onSelect: (selection: Selection) => void;
+  openPreview: (step: number) => void;
 }) {
   const [indexOpen, setIndexOpen] = useState(false);
   return (
     <aside className="history-rail" aria-label="项目历史">
-      <div className="panel-title"><History size={16} /><h2>会话历史</h2></div>
+      <div className="panel-title"><History size={16} /><h2>会话历史</h2><span className="history-count">{replay.frames.length} 轮</span></div>
       <div className="history-list">
         {replay.frames.map((item, step) => {
           const sessionStart = step === 0 || item.sessionId !== replay.frames[step - 1]?.sessionId;
+          const preview = item.preview;
+          const hasThumbnail = preview && imagePreview.test(preview.url);
           return (
-            <div key={item.id}>
+            <div className="history-entry" key={item.id}>
               {sessionStart && <div className="session-label"><MessageSquare size={12} /> 会话 {new Set(replay.frames.slice(0, step + 1).map(entry => entry.sessionId)).size}</div>}
-              <button type="button" className="history-item" aria-current={index === step ? 'step' : undefined} onClick={() => goTo(step)}>
-                <span className="history-dot" />
-                <span className="history-item-text"><strong>{item.title}</strong><small>第 {step + 1} 轮 {timeLabel(item.timestamp) && `· ${timeLabel(item.timestamp)}`}</small></span>
-                <ChevronRight size={14} />
-              </button>
+              <div className="history-version" data-active={index === step}>
+                <button type="button" className="history-item" aria-current={index === step ? 'step' : undefined} onClick={() => goTo(step)}>
+                  <span className="history-dot" />
+                  <span className="history-item-text"><small>第 {step + 1} 轮 {timeLabel(item.timestamp) && `· ${timeLabel(item.timestamp)}`}</small><strong>{item.title}</strong></span>
+                  <ChevronRight size={14} />
+                </button>
+                {preview && <button type="button" className="history-preview" onClick={() => openPreview(step)} aria-label={`打开 ${preview.title}`} title={preview.title}>
+                  {hasThumbnail && <img src={preview.url} alt="" loading="lazy" />}
+                  <span>{hasThumbnail ? <ArrowUpRight size={15} /> : <><Monitor size={14} /> 作品预览 <ArrowUpRight size={14} /></>}</span>
+                </button>}
+              </div>
             </div>
           );
         })}
@@ -221,17 +239,14 @@ function Timeline({
   const final = index === frames.length - 1;
   return (
     <section className="timeline" aria-label="回放时间轴">
-      <div className="timeline-top">
-        <div className="timeline-label"><AudioLines size={16} /><strong>回放</strong></div>
-        <div className="transport">
-          <button type="button" className="icon-button" aria-label="上一轮" title="上一轮 (←)" disabled={index === 0} onClick={() => goTo(index - 1)}><ChevronLeft size={17} /></button>
-          <button type="button" className="play-button" aria-label={playing ? '暂停' : '播放'} title={playing ? '暂停 (空格)' : '播放 (空格)'} onClick={togglePlaying} disabled={frames.length < 2}>
-            {playing ? <Pause size={15} fill="currentColor" /> : final ? <RotateCcw size={15} /> : <Play size={14} fill="currentColor" />}
-            <span>{playing ? '暂停' : final ? '重新播放' : '播放'}</span>
-          </button>
-          <button type="button" className="icon-button" aria-label="下一轮" title="下一轮 (→)" disabled={final} onClick={() => goTo(index + 1)}><ChevronRight size={17} /></button>
-        </div>
-        <span className="timeline-count">{ordinal(index)} / {String(frames.length).padStart(2, '0')}</span>
+      <div className="timeline-label"><AudioLines size={16} /><strong>回放</strong></div>
+      <div className="transport">
+        <button type="button" className="icon-button" aria-label="上一轮" title="上一轮 (←)" disabled={index === 0} onClick={() => goTo(index - 1)}><ChevronLeft size={17} /></button>
+        <button type="button" className="play-button" aria-label={playing ? '暂停' : '播放'} title={playing ? '暂停 (空格)' : '播放 (空格)'} onClick={togglePlaying} disabled={frames.length < 2}>
+          {playing ? <Pause size={15} fill="currentColor" /> : final ? <RotateCcw size={15} /> : <Play size={14} fill="currentColor" />}
+          <span>{playing ? '暂停' : final ? '重新播放' : '播放'}</span>
+        </button>
+        <button type="button" className="icon-button" aria-label="下一轮" title="下一轮 (→)" disabled={final} onClick={() => goTo(index + 1)}><ChevronRight size={17} /></button>
       </div>
       <div className="timeline-track" role="group" aria-label="跳转轮次">
         {frames.map((frame, step) => (
@@ -240,6 +255,7 @@ function Timeline({
           </button>
         ))}
       </div>
+      <span className="timeline-count">{ordinal(index)} / {String(frames.length).padStart(2, '0')}</span>
     </section>
   );
 }
@@ -277,16 +293,16 @@ function Spec({ frame, title, onBack }: { frame: Frame; title: string; onBack: (
 }
 
 function Preview({ preview, onBack }: { preview: NonNullable<Frame['preview']>; onBack: () => void }) {
-  const isImage = /\.(avif|gif|jpe?g|png|webp)(?:[?#].*)?$/i.test(preview.url);
+  const isImage = imagePreview.test(preview.url);
   const isVideo = /\.(mp4|webm)(?:[?#].*)?$/i.test(preview.url);
   return (
     <section className="document-panel preview-panel">
       <div className="document-toolbar">
         <button className="text-button" onClick={onBack}><ArrowLeft size={15} />返回画布</button>
-        <a className="text-button" href={preview.pageUrl ?? preview.url} target="_blank" rel="noreferrer">{preview.pageUrl ? '打开作品' : '在新窗口打开'} <ExternalLink size={14} /></a>
+        {!compact && <a className="text-button" href={preview.pageUrl ?? preview.url} target="_blank" rel="noreferrer">{preview.pageUrl ? '打开作品' : '在新窗口打开'} <ExternalLink size={14} /></a>}
       </div>
       <div className="preview-content">
-        <div className="preview-bar"><span /><span /><span /><strong>{preview.title}</strong></div>
+        <div className="preview-bar"><Monitor size={14} /><strong>{preview.title}</strong></div>
         {isImage ? <img src={preview.url} alt={preview.title} />
           : isVideo ? <video src={preview.url} controls aria-label={preview.title} />
           : <iframe src={preview.url} title={preview.title} sandbox="" />}
@@ -311,29 +327,38 @@ function EmptyState({ error }: { error: string }) {
 
 function Workspace({ replay, error }: { replay: Replay; error: string }) {
   const [manualIndex, setManualIndex] = useState<number | null>(null);
-  const [selection, setSelection] = useState<Selection | null | undefined>(undefined);
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const [details, setDetails] = useState<'selection' | 'round' | null>(null);
   const [playing, setPlaying] = useState(false);
   const [panel, setPanel] = useState<Panel>('canvas');
   const [allNodes, setAllNodes] = useState(false);
   const [compactHistory, setCompactHistory] = useState(false);
+  const detailsToggle = useRef<HTMLButtonElement>(null);
   const lastIndex = replay.frames.length - 1;
   const index = manualIndex === null ? lastIndex : Math.min(manualIndex, lastIndex);
   const frame = replay.frames[index];
-  const currentSelection = selection === undefined
-    ? frame.focusId && frame.nodes.some(node => node.id === frame.focusId) ? { type: 'node', id: frame.focusId } as const : null
-    : selection;
+  const currentSelection = selection && (selection.type === 'node' ? frame.nodes : frame.edges).some(item => item.id === selection.id)
+    ? selection : null;
   const positions = useMemo(() => arrangeFrames(replay.frames), [replay.frames]);
   const pickSelection = useCallback((item: Selection | null) => {
     setSelection(item);
+    setDetails(item ? 'selection' : null);
+    if (item) setPlaying(false);
     setPanel('canvas');
     setCompactHistory(false);
   }, []);
 
+  const closeDetails = useCallback(() => {
+    setSelection(null);
+    setDetails(null);
+  }, []);
+
   const goTo = useCallback((step: number) => {
     setManualIndex(step >= lastIndex ? null : Math.max(step, 0));
-    setSelection(undefined);
+    closeDetails();
     setPlaying(false);
-  }, [lastIndex]);
+    setCompactHistory(false);
+  }, [closeDetails, lastIndex]);
 
   const togglePlaying = useCallback(() => {
     if (lastIndex < 1) return;
@@ -344,10 +369,10 @@ function Workspace({ replay, error }: { replay: Replay; error: string }) {
     setPanel('canvas');
     if (index === lastIndex) {
       setManualIndex(0);
-      setSelection(undefined);
+      closeDetails();
     }
     setPlaying(true);
-  }, [index, lastIndex, playing]);
+  }, [closeDetails, index, lastIndex, playing]);
 
   useEffect(() => {
     if (!playing) return;
@@ -358,10 +383,10 @@ function Workspace({ replay, error }: { replay: Replay; error: string }) {
       } else {
         setManualIndex(index + 1);
       }
-      setSelection(undefined);
+      closeDetails();
     }, playbackIntervalMs);
     return () => window.clearTimeout(tick);
-  }, [index, lastIndex, playing]);
+  }, [closeDetails, index, lastIndex, playing]);
 
   useEffect(() => {
     if (compact) return;
@@ -387,7 +412,26 @@ function Workspace({ replay, error }: { replay: Replay; error: string }) {
     if (next !== 'canvas') setPlaying(false);
   }
 
+  function openRoundPreview(step: number) {
+    goTo(step);
+    openPanel('preview');
+  }
+
   const activePanel = panel === 'preview' && !frame.preview ? 'canvas' : panel;
+  const detailsOpen = activePanel === 'canvas' && details !== null;
+
+  function toggleDetails() {
+    if (detailsOpen) closeDetails();
+    else {
+      setPlaying(false);
+      setDetails('round');
+    }
+  }
+
+  function dismissDetails() {
+    closeDetails();
+    detailsToggle.current?.focus();
+  }
 
   return (
     <main className={compact ? 'app-shell compact' : 'app-shell'}>
@@ -399,41 +443,42 @@ function Workspace({ replay, error }: { replay: Replay; error: string }) {
           {!compact && frame.preview && <button type="button" aria-current={activePanel === 'preview' ? 'page' : undefined} onClick={() => openPanel('preview')}><Monitor size={15} />网站预览</button>}
         </nav>
         {compact ? <button className="icon-button header-action" onClick={() => host?.postMessage({ type: 'replay' })} title="打开浏览器回放" aria-label="打开浏览器回放"><ExternalLink size={16} /></button>
-          : <div className="header-mode"><Circle size={8} fill="currentColor" />本地回放</div>}
+          : <div className="header-mode"><Circle size={7} fill="currentColor" />本地回放</div>}
       </header>
       {error && <div className="error-banner" role="status">{error}</div>}
       <div className="workspace">
         <div className={compactHistory ? 'history-container history-open' : 'history-container'}>
-          <HistoryRail replay={replay} frame={frame} index={index} goTo={goTo} onSelect={pickSelection} />
+          <HistoryRail replay={replay} frame={frame} index={index} goTo={goTo} onSelect={pickSelection} openPreview={openRoundPreview} />
         </div>
         <div className="center-column">
-          {activePanel === 'canvas' ? <>
+          {activePanel === 'canvas' ?
             <section className="canvas-section" aria-label="想法画布">
-              <Canvas frame={frame} positions={positions} selection={currentSelection} allNodes={allNodes} compact={compact} onSelect={pickSelection} />
               <div className="canvas-toolbar">
                 <div className="canvas-heading">
-                  <div className="canvas-kicker"><span className="kicker-dot" />第 {index + 1} 轮</div>
+                  <div className="canvas-kicker">第 {index + 1} 轮</div>
                   <h1>{frame.title}</h1>
                 </div>
                 <div className="canvas-actions">
-                  <button type="button" aria-pressed={allNodes} title={allNodes ? '只看当前关联' : '显示全部想法'} onClick={() => setAllNodes(value => !value)}><Layers size={16} /><span>{allNodes ? '全部想法' : '当前关联'}</span><ChevronDown size={13} /></button>
+                  <button type="button" aria-pressed={allNodes} title={allNodes ? '只看当前关联' : '显示全部想法'} onClick={() => setAllNodes(value => !value)}><Layers size={15} /><span>{allNodes ? '全部想法' : '当前关联'}</span></button>
+                  <button type="button" ref={detailsToggle} aria-label="详情" aria-expanded={detailsOpen} aria-controls={detailsOpen ? 'evidence' : undefined} title="详情" onClick={toggleDetails}><ListTree size={15} /><span>详情</span></button>
                   <button type="button" className="mobile-history" aria-label="会话历史" aria-expanded={compactHistory} title="会话历史" onClick={() => setCompactHistory(value => !value)}><History size={17} /></button>
                 </div>
               </div>
-              {frame.nodes.length === 0 && <div className="canvas-empty">这一轮的想法正在整理。</div>}
+              <div className="canvas-viewport">
+                <Canvas frame={frame} positions={positions} selection={currentSelection} allNodes={allNodes} compact={compact} onSelect={pickSelection} />
+                {frame.nodes.length === 0 && <div className="canvas-empty">这一轮的想法正在整理。</div>}
+              </div>
             </section>
-          </> : activePanel === 'spec' ? <Spec frame={frame} title={replay.project.title} onBack={() => openPanel('canvas')} />
+           : activePanel === 'spec' ? <Spec frame={frame} title={replay.project.title} onBack={() => openPanel('canvas')} />
             : frame.preview && <Preview preview={frame.preview} onBack={() => openPanel('canvas')} />}
           {!compact && <Timeline frames={replay.frames} index={index} playing={playing} goTo={goTo} togglePlaying={togglePlaying} />}
         </div>
-        {activePanel === 'canvas' && <Evidence key={frame.id} frame={frame}
+        {detailsOpen && <Evidence key={frame.id} frame={frame}
           roundSources={frame.sources.slice(replay.frames[index - 1]?.sources.length ?? 0)}
-          selection={currentSelection} setSelection={pickSelection} openPreview={() => openPanel('preview')} />}
+          selection={currentSelection} setSelection={pickSelection}
+          showRound={details === 'round'} toggleRound={() => setDetails(view => view === 'round' ? 'selection' : 'round')}
+          close={dismissDetails} openPreview={() => openPanel('preview')} />}
       </div>
-      {!compact && <footer className="app-footer">
-        <span><GitBranch size={13} />{replay.project.title}</span>
-        <span>{frame.nodes.length} 张卡片 <span className="footer-divider" /> {frame.edges.length} 条关系</span>
-      </footer>}
     </main>
   );
 }

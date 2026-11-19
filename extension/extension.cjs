@@ -135,8 +135,8 @@ function activate(context) {
       const result = await installHooks(project.fsPath, { node, cli });
       refresh();
       const message = result.changed
-        ? '已写入脉络项目 hooks。请启动或重开 Codex，在 /hooks 中审阅并信任三项记录 hooks。'
-        : '脉络项目 hooks 已配置。首次使用时，请在 Codex 的 /hooks 中审阅并信任。';
+        ? '已写入项目记录 hooks。请启动或重开 Codex，在 /hooks 中审阅并信任三项记录 hooks。'
+        : '项目记录 hooks 已配置。首次使用时，请在 Codex 的 /hooks 中审阅并信任。';
       const openTerminal = '打开项目终端';
       void vscode.window.showInformationMessage(message, openTerminal).then(action => {
         if (action === openTerminal) {
@@ -193,7 +193,7 @@ function activate(context) {
         updating = true;
         const example = showExample;
         const projectPath = activeProject()?.fsPath;
-        view.title = example ? '脉络 MindTrace · 路演示例' : '脉络 MindTrace';
+        view.title = example ? 'Pace your thought with agents · 路演示例' : 'Pace your thought with agents';
         try {
           let message;
           try {
@@ -210,7 +210,7 @@ function activate(context) {
             lastMessage = encoded;
           }
         } catch (error) {
-          if (!disposed) console.error('脉络 Webview 更新失败', error);
+          if (!disposed) console.error('画布 Webview 更新失败', error);
         } finally {
           updating = false;
         }
@@ -256,7 +256,7 @@ function activate(context) {
       try {
         webview.html = await renderWebview(webview);
       } catch {
-        webview.html = '<!doctype html><p>脉络画布资源缺失。请重新安装 VSIX。</p>';
+        webview.html = '<!doctype html><p>画布资源缺失。请重新安装 VSIX。</p>';
       }
     },
   };

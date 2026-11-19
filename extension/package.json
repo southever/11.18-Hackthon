@@ -1,8 +1,8 @@
 {
   "name": "mailuo",
-  "displayName": "脉络 MindTrace",
+  "displayName": "Pace your thought with agents",
   "description": "在 VS Code 中查看 Codex 对话里积累的想法、依据和项目决策。",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "publisher": "southever",
   "engines": {
     "vscode": "^1.97.0"
@@ -33,7 +33,7 @@
       "activitybar": [
         {
           "id": "mailuo",
-          "title": "脉络 MindTrace",
+          "title": "Pace your thought with agents",
           "icon": "icon.svg"
         }
       ]
@@ -42,7 +42,7 @@
       "mailuo": [
         {
           "id": "mailuo.canvas",
-          "name": "脉络 MindTrace",
+          "name": "Pace your thought with agents",
           "type": "webview"
         }
       ]
@@ -50,32 +50,32 @@
     "commands": [
       {
         "command": "mailuo.enable",
-        "category": "脉络 MindTrace",
+        "category": "Pace your thought with agents",
         "title": "启用项目记录"
       },
       {
         "command": "mailuo.export",
-        "category": "脉络 MindTrace",
+        "category": "Pace your thought with agents",
         "title": "导出当前项目说明"
       },
       {
         "command": "mailuo.replay",
-        "category": "脉络 MindTrace",
+        "category": "Pace your thought with agents",
         "title": "打开内置演示回放"
       },
       {
         "command": "mailuo.example",
-        "category": "脉络 MindTrace",
+        "category": "Pace your thought with agents",
         "title": "在侧栏查看路演示例"
       },
       {
         "command": "mailuo.project",
-        "category": "脉络 MindTrace",
+        "category": "Pace your thought with agents",
         "title": "在侧栏查看当前工作区"
       }
     ],
     "configuration": {
-      "title": "脉络 MindTrace",
+      "title": "Pace your thought with agents",
       "properties": {
         "mailuo.nodePath": {
           "type": "string",

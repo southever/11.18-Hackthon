@@ -1,10 +1,12 @@
-# 脉络 MindTrace
+# Pace your thought with agents
 
-脉络把一个人和 AI 一起做事的过程画成一张想法关系图。你照常在 VS Code 的终端里和 Codex 对话，侧栏会记下提出的想法、实际的尝试和后来改变的决定。同一个项目换个会话，仍能接着看。
+在 VS Code 终端照常和 Codex 对话，侧栏会记下提出的想法、实际的尝试和后来改变的决定。点开关系线可以看当时的依据，同一个项目换个会话也能接着看。
+
+![校园电影节网站的两轮开发记录。场次表取代首页海报轮播，影片详情沿用原海报。](docs/canvas.png)
 
 ## 在本机打开路演
 
-安装 Node.js 24。下载并解压发行包 `mailuo-roadshow.zip`，在解压后的目录运行：
+安装 Node.js 24。下载并解压发行包 `pace-roadshow.zip`，在解压后的目录运行以下命令。
 
 ```sh
 node scripts/demo.mjs --open
@@ -25,7 +27,7 @@ npm run demo -- --open
 ## 用自己的项目
 
 1. 在 VS Code 的扩展视图选择「从 VSIX 安装」，打开发行页提供的 `.vsix`。
-2. 打开项目文件夹，从活动栏进入「脉络」，运行「启用项目记录」。在该项目启动 Codex CLI，通过 `/hooks` 审阅并启用脉络的项目 hooks。
+2. 打开项目文件夹，从活动栏进入「Pace your thought with agents」，运行「启用项目记录」。在该项目启动 Codex CLI，通过 `/hooks` 审阅并启用该扩展的项目 hooks。
 3. 继续在原终端与 Codex 对话。点开画布卡片或关系线可查看来源，在项目说明中可将当前 spec 导出为 Markdown。
 4. 想先看例子时，从命令面板运行「在侧栏查看路演示例」；「在侧栏查看当前工作区」切回自己的项目。
 

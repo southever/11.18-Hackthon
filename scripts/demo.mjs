@@ -7,7 +7,7 @@ try {
     webDirectory: fileURLToPath(new URL('../web/dist/', import.meta.url)),
     demoDirectory: fileURLToPath(new URL('../demo/', import.meta.url)),
   });
-  console.log(`脉络 MindTrace · ${url}`);
+  console.log(`Pace your thought with agents · ${url}`);
   if (process.argv.includes('--open')) {
     const [program, ...args] = process.platform === 'win32'
       ? ['rundll32.exe', 'url.dll,FileProtocolHandler', url]
